@@ -61,3 +61,6 @@ Afterwards, you will see the plugins in your repository on Marketplace tab.
 
 - Serving `updatePlugins.xml` according to version of Intellj Idea.
 - Test and make it work on other repositories.
+
+### References
+- https://plugins.jetbrains.com/docs/intellij/update-plugins-format.html#format-of-updatepluginsxml-file	

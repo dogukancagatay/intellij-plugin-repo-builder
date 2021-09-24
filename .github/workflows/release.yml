@@ -38,10 +38,18 @@ jobs:
         cp config.yaml ${OUTPUT_DIR}-${GOOS}_${GOARCH}/
         tar -czf ${OUTPUT_DIR}-${GOOS}_${GOARCH}.tar.gz ${OUTPUT_DIR}-${GOOS}_${GOARCH}/
       shell: bash
-    - name: Upload the artifacts
-      uses: skx/github-action-publish-binaries@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Upload binaries to release
+      uses: svenstaro/upload-release-action@v2
       with:
-        releaseId: ${{ github.event.release.tag_name }}
-        args: '*.tar.gz'
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        file: '*.tar.gz'
+        tag: ${{ github.ref }}
+        overwrite: true
+        file_glob: true
+    # - name: Upload the artifacts
+    #   uses: skx/github-action-publish-binaries@master
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #   with:
+    #     releaseId: ${{ github.event.release.tag_name }}
+    #     args: '*.tar.gz'

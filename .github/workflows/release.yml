@@ -1,5 +1,6 @@
-on: release
 name: Build Release
+on: release
+
 jobs:
 
   release-linux-amd64:

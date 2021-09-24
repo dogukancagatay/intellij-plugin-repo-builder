@@ -46,10 +46,3 @@ jobs:
         tag: ${{ github.ref }}
         overwrite: true
         file_glob: true
-    # - name: Upload the artifacts
-    #   uses: skx/github-action-publish-binaries@master
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    #   with:
-    #     releaseId: ${{ github.event.release.tag_name }}
-    #     args: '*.tar.gz'

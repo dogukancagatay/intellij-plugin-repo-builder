@@ -1,69 +1,47 @@
 name: Build Release
-on: release
+on:
+  release:
+    types: [published]
 
 jobs:
-
-  release-linux-amd64:
-    name: release linux/amd64
-    runs-on: ubuntu-latest
+  build-and-release:
+    strategy:
+      matrix:
+        go-version: [1.17.1]
+        platform: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.platform }}
     steps:
-    - uses: actions/checkout@master
-    - name: compile and release
-      uses: ngs/go-release.action@v1.0.1
+    - uses: actions/checkout@v2
+    - name: Setup Go
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ matrix.go-version }}
+    - name: Build and create archives
+      run: |
+        export OUTPUT_DIR=intellij-plugin-repo-builder-${{ github.event.release.tag_name }}
+        export GOARCH=amd64
+
+        if [ "$RUNNER_OS" == "Linux" ]; then
+          export GOOS=linux
+          go build -o ${OUTPUT_DIR}-${GOOS}_${GOARCH}/repo-builder .
+        elif [ "$RUNNER_OS" == "Windows" ]; then
+          export GOOS=windows
+          go build -o ${OUTPUT_DIR}-${GOOS}_${GOARCH}/repo-builder.exe .
+        elif [ "$RUNNER_OS" == "macOS" ]; then
+          export GOOS=darwin
+          go build -o ${OUTPUT_DIR}-${GOOS}_${GOARCH}/repo-builder .
+        else
+          echo "$RUNNER_OS not supported"
+          exit 1
+        fi
+
+        cp config.yaml ${OUTPUT_DIR}-${GOOS}_${GOARCH}/
+        tar -czf ${OUTPUT_DIR}-${GOOS}_${GOARCH}.tar.gz ${OUTPUT_DIR}-${GOOS}_${GOARCH}/
+      shell: bash
+    - name: Upload the artifacts
+      uses: skx/github-action-publish-binaries@master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GOARCH: amd64
-        GOOS: linux
-        EXTRA_FILES: "config.yaml"
-
-  release-linux-arm:
-    name: release linux/386
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@master
-    - name: compile and release
-      uses: ngs/go-release.action@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GOARCH: "arm"
-        GOOS: linux
-        EXTRA_FILES: "config.yaml"
-
-  release-linux-arm64:
-    name: release linux/amd64
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@master
-    - name: compile and release
-      uses: ngs/go-release.action@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GOARCH: arm64
-        GOOS: linux
-        EXTRA_FILES: "config.yaml"
-
-  release-darwin-amd64:
-    name: release darwin/amd64
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@master
-    - name: compile and release
-      uses: ngs/go-release.action@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GOARCH: amd64
-        GOOS: darwin
-        EXTRA_FILES: "config.yaml"
-
-  release-windows-amd64:
-    name: release windows/amd64
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@master
-    - name: compile and release
-      uses: ngs/go-release.action@v1.0.1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        GOARCH: amd64
-        GOOS: windows
-        EXTRA_FILES: "config.yaml"
+      with:
+        releaseId: ${{ github.event.release.tag_name }}
+        args: '*.tar.gz'

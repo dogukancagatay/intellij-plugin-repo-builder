@@ -1,0 +1,11 @@
+version: '3'
+services:
+
+  repo:
+    image: dcagatay/intellij-plugin-repo-builder:v1.0.1-2021.2.2
+    ports:
+      - 3000:3000
+    environment:
+      SERVER_URL: "http://192.168.76.71:3000"
+    restart: unless-stopped
+

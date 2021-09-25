@@ -14,7 +14,8 @@ RUN apk add --no-cache \
 WORKDIR /app/out
 
 # Download intellij idea
-RUN curl -fSL --retry 3 'https://download.jetbrains.com/idea/ideaIU-${INTELLIJ_VERSION}.exe' -o /app/out/ideaIU-${INTELLIJ_VERSION}.exe
+RUN curl -fSL --retry 3 "https://download.jetbrains.com/idea/ideaIU-${INTELLIJ_VERSION}.exe" \
+  -o ideaIU-${INTELLIJ_VERSION}.exe
 
 # Download repo builders
 RUN curl -fSL --retry 3 "https://github.com/dogukancagatay/intellij-plugin-repo-builder/releases/download/${APP_VERSION}/intellij-plugin-repo-builder-${APP_VERSION}-linux_amd64.tar.gz" \

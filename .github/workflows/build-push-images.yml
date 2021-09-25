@@ -5,6 +5,8 @@ on:
       - 'README.md'
       - 'LICENSE'
       - '.gitignore'
+      - '.editorconfig'
+      - 'docker-compose.yml'
     branches:
       - docker-image
 

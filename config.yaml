@@ -41,3 +41,4 @@ plugins:
   - 9746    # https://plugins.jetbrains.com/plugin/9746-ideolog
   - 9792    # https://plugins.jetbrains.com/plugin/9792-key-promoter-x
   - 9836    # https://plugins.jetbrains.com/plugin/9836-randomness
+  - 7981    # https://plugins.jetbrains.com/plugin/7981-azure-devops

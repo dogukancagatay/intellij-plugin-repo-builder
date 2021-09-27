@@ -8,7 +8,7 @@ on:
       - '.editorconfig'
       - 'docker-compose.yml'
     branches:
-      - docker-image
+      - master
 
 jobs:
 

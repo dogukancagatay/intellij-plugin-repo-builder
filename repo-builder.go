@@ -362,7 +362,7 @@ func main() {
 	// Arguments
 	serveHttp := flag.Bool("serve", false, "Start HTTP server")
 	buildRepo := flag.Bool("build", false, "Build repository (Requires internet)")
-	configFile := flag.String("config", "config.yaml", "Config file")
+	configFile := flag.String("config", "config.yml", "Config file")
 	flag.Parse()
 
 	// Read config

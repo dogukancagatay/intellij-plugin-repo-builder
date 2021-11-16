@@ -7,7 +7,7 @@ variable "APP_VERSION" {
 }
 
 variable "INTELLIJ_VERSION" {
-    default = "2021.2.2"
+    default = "2021.2.3"
 }
 
 group "default" {

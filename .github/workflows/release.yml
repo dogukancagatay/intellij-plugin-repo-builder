@@ -11,39 +11,60 @@ jobs:
         platform: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.platform }}
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup Go
-      uses: actions/setup-go@v2
-      with:
-        go-version: ${{ matrix.go-version }}
-    - name: Build and create archives
-      run: |
-        export OUTPUT_DIR=intellij-plugin-repo-builder-${{ github.event.release.tag_name }}
-        export GOARCH=amd64
-        export CGO_ENABLED=0
+      - uses: actions/checkout@v2
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Build and create archives
+        run: |
+          export OUTPUT_DIR=intellij-plugin-repo-builder-${{ github.event.release.tag_name }}
+          export GOARCH=amd64
+          export CGO_ENABLED=0
 
-        if [ "$RUNNER_OS" == "Linux" ]; then
-          export GOOS=linux
-          go build -o ${OUTPUT_DIR}-${GOOS}_${GOARCH}/repo-builder .
-        elif [ "$RUNNER_OS" == "Windows" ]; then
-          export GOOS=windows
-          go build -o ${OUTPUT_DIR}-${GOOS}_${GOARCH}/repo-builder.exe .
-        elif [ "$RUNNER_OS" == "macOS" ]; then
-          export GOOS=darwin
-          go build -o ${OUTPUT_DIR}-${GOOS}_${GOARCH}/repo-builder .
-        else
-          echo "$RUNNER_OS not supported"
-          exit 1
-        fi
+          if [ "$RUNNER_OS" == "Linux" ]; then
+            export GOOS=linux
+            go build -o ${OUTPUT_DIR}-${GOOS}_${GOARCH}/repo-builder .
+          elif [ "$RUNNER_OS" == "Windows" ]; then
+            export GOOS=windows
+            go build -o ${OUTPUT_DIR}-${GOOS}_${GOARCH}/repo-builder.exe .
+          elif [ "$RUNNER_OS" == "macOS" ]; then
+            export GOOS=darwin
+            go build -o ${OUTPUT_DIR}-${GOOS}_${GOARCH}/repo-builder .
+          else
+            echo "$RUNNER_OS not supported"
+            exit 1
+          fi
 
-        cp config.yaml ${OUTPUT_DIR}-${GOOS}_${GOARCH}/
-        tar -czf ${OUTPUT_DIR}-${GOOS}_${GOARCH}.tar.gz ${OUTPUT_DIR}-${GOOS}_${GOARCH}/
-      shell: bash
-    - name: Upload binaries to release
-      uses: svenstaro/upload-release-action@v2
-      with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        file: '*.tar.gz'
-        tag: ${{ github.ref }}
-        overwrite: true
-        file_glob: true
+          cp config.yaml ${OUTPUT_DIR}-${GOOS}_${GOARCH}/
+          tar -czf ${OUTPUT_DIR}-${GOOS}_${GOARCH}.tar.gz ${OUTPUT_DIR}-${GOOS}_${GOARCH}/
+        shell: bash
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: "*.tar.gz"
+          tag: ${{ github.ref }}
+          overwrite: true
+          file_glob: true
+
+  bake-latest:
+    needs: build-and-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/bake-action@master
+        with:
+          push: true

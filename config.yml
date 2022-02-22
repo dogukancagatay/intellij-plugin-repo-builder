@@ -44,4 +44,5 @@ plugins:
   - 7981    # https://plugins.jetbrains.com/plugin/7981-azure-devops
   - 7535    # https://plugins.jetbrains.com/plugin/7535-gauge
   - 7973    # https://plugins.jetbrains.com/plugin/7973-sonarlint
+  - 11938   # https://plugins.jetbrains.com/plugin/11938-one-dark-theme
 

@@ -2,7 +2,7 @@ FROM docker.io/alpine:3.14
 LABEL maintainer="Dogukan Cagatay <dcagatay@gmail.com>"
 
 ARG APP_VERSION=v1.0.1
-ARG INTELLIJ_VERSION=2021.3.2
+ARG INTELLIJ_VERSION=2022.2
 
 ENV SERVER_URL "http://localhost:3000"
 

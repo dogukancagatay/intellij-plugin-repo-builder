@@ -7,6 +7,6 @@ services:
     ports:
       - 3000:3000
     environment:
-      SERVER_URL: "http://192.168.76.71:3000"
+      SERVER_URL: "http://localhost:3000"
     restart: unless-stopped
 

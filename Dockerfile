@@ -1,7 +1,7 @@
 FROM docker.io/alpine:3.14
 LABEL maintainer="Dogukan Cagatay <dcagatay@gmail.com>"
 
-ARG APP_VERSION=v1.0.2
+ARG APP_VERSION=v1.0.3
 
 ENV SERVER_URL "http://localhost:3000"
 

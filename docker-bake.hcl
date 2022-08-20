@@ -3,7 +3,7 @@ variable "IMAGE_NAME" {
 }
 
 variable "APP_VERSION" {
-    default = "v1.0.2"
+    default = "v1.0.3"
 }
 
 variable "INTELLIJ_VERSION" {

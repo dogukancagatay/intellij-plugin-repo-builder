@@ -20,7 +20,7 @@ Serve repository with the HTTP server.
 
 ## Configuration
 
-Configuration options can be specified in `config.yml`.
+Configuration options can be specified in `config.yaml`.
 
 ```go
 type Config struct {
@@ -47,7 +47,7 @@ For example, the following is the URL of the IdeaVim plugin, its plugin ID is *1
 https://plugins.jetbrains.com/plugin/164-ideavim
 ```
 
-You can find a sample list inside `config.yml`.
+You can find a sample list inside `config.yaml`.
 
 
 ## IntelliJ IDE Setup

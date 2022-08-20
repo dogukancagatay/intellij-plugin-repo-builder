@@ -1,0 +1,6 @@
+.editorconfig
+docker-compose.yml
+docker-bake.hcl
+.github
+.run
+out

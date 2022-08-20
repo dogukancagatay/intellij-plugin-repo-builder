@@ -2,7 +2,8 @@ version: '3'
 services:
 
   repo:
-    image: dcagatay/intellij-plugin-repo-builder:v1.0.1-2021.2.2
+    build: ./
+    image: dcagatay/intellij-plugin-repo-builder:latest
     ports:
       - 3000:3000
     environment:

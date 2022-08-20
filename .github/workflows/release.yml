@@ -36,7 +36,7 @@ jobs:
             exit 1
           fi
 
-          cp config.yml ${OUTPUT_DIR}-${GOOS}_${GOARCH}/
+          cp config.yaml ${OUTPUT_DIR}-${GOOS}_${GOARCH}/
           tar -czf ${OUTPUT_DIR}-${GOOS}_${GOARCH}.tar.gz ${OUTPUT_DIR}-${GOOS}_${GOARCH}/
         shell: bash
       - name: Upload binaries to release

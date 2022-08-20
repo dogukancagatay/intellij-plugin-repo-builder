@@ -131,6 +131,7 @@ type Config struct {
 }
 
 func readConfig(filepath string) Config {
+	log.Printf("Read config from %s\n", filepath)
 	yfile, err := ioutil.ReadFile(filepath)
 	if err != nil {
 		log.Fatal(err)
@@ -221,10 +222,11 @@ func downloadFile(filePath string, url string) error {
 		dirPath := filepath.Dir(filePath)
 
 		if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-			os.MkdirAll(dirPath, 0755)
-		} else {
-			log.Fatalf("Error creating download directories: %s", err)
-			return err
+			err := os.MkdirAll(dirPath, 0755)
+			if err != nil {
+				log.Fatalf("Error creating download directories: %s", err)
+				return err
+			}
 		}
 
 		// Create the file
@@ -280,7 +282,11 @@ func processPlugin(pluginId string, sinceMap map[string]PluginDTO, outputDir str
 	pluginDto.Release = release
 
 	sinceMap[plugin.XMLID] = pluginDto
-	downloadFile(downloadDirPath+"/"+r.File, downloadUrl)
+	err := downloadFile(downloadDirPath+"/"+r.File, downloadUrl)
+	if err != nil {
+		log.Fatalf("Failed creating file: %s", err)
+		return
+	}
 
 }
 
@@ -299,8 +305,17 @@ func writeLineListFile(filepath string, lineList []string) {
 		_, _ = datawriter.WriteString(data)
 	}
 
-	datawriter.Flush()
-	file.Close()
+	err = datawriter.Flush()
+	if err != nil {
+		log.Fatalf("Failed flushing file: %s", err)
+		return
+	}
+
+	err = file.Close()
+	if err != nil {
+		log.Fatalf("Failed closing file: %s", err)
+		return
+	}
 }
 
 func buildRepository(serverUrl string, pluginList []string, outputDir string) {
@@ -362,7 +377,7 @@ func main() {
 	// Arguments
 	serveHttp := flag.Bool("serve", false, "Start HTTP server")
 	buildRepo := flag.Bool("build", false, "Build repository (Requires internet)")
-	configFile := flag.String("config", "config.yml", "Config file")
+	configFile := flag.String("config", "config.yaml", "Config file")
 	flag.Parse()
 
 	// Read config

@@ -239,15 +239,16 @@ func downloadFile(filePath string, url string) error {
 
 		// Write the body to file
 		_, err = io.Copy(out, resp.Body)
-		if err == nil {
-			log.Printf("Downloaded %s to %s", url, filePath)
+		if err != nil {
+			log.Fatalf("Could not write body to file %s", filePath)
+			return err
 		}
-
+		log.Printf("Downloaded %s to %s", url, filePath)
 	} else {
 		log.Printf("File is already exists: %s", filePath)
 	}
 
-	return err
+	return nil
 }
 
 func processPlugin(pluginId string, sinceMap map[string]PluginDTO, outputDir string) {
@@ -264,7 +265,7 @@ func processPlugin(pluginId string, sinceMap map[string]PluginDTO, outputDir str
 	r := pluginReleases[0]
 	downloadUrl := IntellijDownloadUrlPrefix + "/" + r.File
 
-	log.Printf("Will download '%s' (%s) (%s)\n", plugin.Name, plugin.XMLID, r.Version)
+	log.Printf("Will download '%s' (%s) (%s) from %s\n", plugin.Name, plugin.XMLID, r.Version, downloadUrl)
 
 	// Create Release DTO
 	release := ReleaseDTO{}

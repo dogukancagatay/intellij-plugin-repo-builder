@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "intellij-plugin-repo.fullname" . }}-test-connection"
+  labels:
+    {{- include "intellij-plugin-repo.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: curl
+      image: radial/busyboxplus:curl
+      command: ['curl']
+      args: ['{{ include "intellij-plugin-repo.fullname" . }}:{{ .Values.service.port }}']
+  restartPolicy: Never

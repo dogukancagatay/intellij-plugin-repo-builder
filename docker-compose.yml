@@ -5,7 +5,7 @@ services:
     build: ./
     image: dcagatay/intellij-plugin-repo-builder:latest
     ports:
-      - 3000:3000
+      - 3000:80
     environment:
       SERVER_URL: "http://localhost:3000"
     restart: unless-stopped

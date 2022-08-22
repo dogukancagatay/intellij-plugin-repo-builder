@@ -1,4 +1,4 @@
-FROM docker.io/alpine:3.14
+FROM docker.io/nginx:1.23.1-alpine
 LABEL maintainer="Dogukan Cagatay <dcagatay@gmail.com>"
 
 ARG APP_VERSION=v1.0.3
@@ -26,9 +26,8 @@ RUN curl -fSL --retry 3 "https://github.com/dogukancagatay/intellij-plugin-repo-
 
 # Build repo
 COPY ./config.yaml ./
-RUN ./repo-builder -build
+RUN ./repo-builder -build && \
+    rm -rf /usr/share/nginx/html && \
+    mv ./out /usr/share/nginx/html
 
-COPY ./entrypoint.sh /entrypoint.sh
-
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["./repo-builder", "-serve"]
+COPY ./entrypoint.sh /docker-entrypoint.d/99-server-url-changer.sh

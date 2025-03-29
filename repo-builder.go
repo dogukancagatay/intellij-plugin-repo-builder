@@ -1,7 +1,3 @@
-// ✅ 增强 repo-builder：添加对本地插件的支持
-// 新增字段：localPlugins
-// 修改方法：buildRepository, readConfig, Config struct
-
 package main
 
 import (
@@ -28,11 +24,16 @@ const PluginReleaseUrlPrefix = "https://plugins.jetbrains.com/api/plugins"
 const PluginReleaseUrlSuffix = "updates?channel=&size=8"
 
 type LocalPlugin struct {
-	ID      string `yaml:"id"`
-	Version string `yaml:"version"`
-	Since   string `yaml:"since"`
-	Until   string `yaml:"until"`
-	File    string `yaml:"file"`
+	ID          string `yaml:"id"`
+	Version     string `yaml:"version"`
+	Since       string `yaml:"since"`
+	Until       string `yaml:"until"`
+	File        string `yaml:"file"`
+	Name        string `yaml:"name"`
+	Vendor      string `yaml:"vendor"`
+	VendorEmail string `yaml:"vendorEmail"`
+	VendorUrl   string `yaml:"vendorUrl"`
+	Description string `yaml:"description"`
 }
 
 type Config struct {
@@ -68,10 +69,14 @@ type ReleaseDTO struct {
 }
 
 type PluginDTO struct {
-	ID      int        `json:"id"`
-	Name    string     `json:"name"`
-	XMLID   string     `json:"xmlId"`
-	Release ReleaseDTO `json:"releases"`
+	ID          int        `json:"id"`
+	Name        string     `json:"name"`
+	XMLID       string     `json:"xmlId"`
+	Description string     `json:"description"`
+	Vendor      string     `json:"vendor"`
+	VendorEmail string     `json:"vendorEmail"`
+	VendorUrl   string     `json:"vendorUrl"`
+	Release     ReleaseDTO `json:"releases"`
 }
 
 func readConfig(filepath string) Config {
@@ -162,9 +167,10 @@ func processPlugin(pluginId string, pluginMap map[string]PluginDTO, outputDir st
 	url := IntellijDownloadUrlPrefix + "/" + r.File
 	downloadFile(filepath.Join(outputDir, PluginDownloadDir, r.File), url)
 	pluginMap[plugin.XMLID] = PluginDTO{
-		ID:    plugin.ID,
-		Name:  plugin.Name,
-		XMLID: plugin.XMLID,
+		ID:          plugin.ID,
+		Name:        plugin.Name,
+		XMLID:       plugin.XMLID,
+		Description: plugin.Description,
 		Release: ReleaseDTO{
 			ID:      r.ID,
 			File:    r.File,
@@ -216,9 +222,13 @@ func buildRepository(serverUrl string, pluginList []string, localPlugins []Local
 			log.Fatalf("Failed to copy local plugin %s: %v", p.ID, err)
 		}
 		pluginMap[p.ID] = PluginDTO{
-			ID:    0,
-			Name:  p.ID,
-			XMLID: p.ID,
+			ID:          0,
+			Name:        p.Name,
+			XMLID:       p.ID,
+			Description: p.Description,
+			Vendor:      p.Vendor,
+			VendorEmail: p.VendorEmail,
+			VendorUrl:   p.VendorUrl,
 			Release: ReleaseDTO{
 				File:    filepath.Base(p.File),
 				Version: p.Version,
@@ -232,6 +242,13 @@ func buildRepository(serverUrl string, pluginList []string, localPlugins []Local
 		fileContent = append(fileContent,
 			fmt.Sprintf("\t<plugin id=\"%s\" url=\"%s/%s/%s\" version=\"%s\">\n",
 				plugin.XMLID, serverUrl, PluginDownloadDir, plugin.Release.File, plugin.Release.Version))
+		fileContent = append(fileContent,
+			fmt.Sprintf("\t\t<name>%s</name>\n", plugin.Name))
+		fileContent = append(fileContent,
+			fmt.Sprintf("\t\t<vendor email=\"%s\" url=\"%s\"> %s </vendor>\n",
+				plugin.VendorEmail, plugin.VendorUrl, plugin.Vendor))
+		fileContent = append(fileContent,
+			fmt.Sprintf("\t\t<description><![CDATA[ %s ]]></description>\n", plugin.Description))
 		fileContent = append(fileContent,
 			fmt.Sprintf("\t\t<idea-version since-build=\"%s\" until-build=\"%s\" />\n",
 				plugin.Release.Since, plugin.Release.Until))

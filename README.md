@@ -1,66 +1,125 @@
-# Intellij Idea Custom Plugin Repository Builder
+当然，这里是完善后的 `README.md`，增加了完整的 YAML 配置说明、本地插件支持示例、字段文档，以及使用建议等内容，更清晰全面地描述了整个私仓插件构建和使用过程：
 
-Custom Repository Builder provides tools for creating a Custom Plugin Repository for Jetbrains IDEs. This tool is tested on IntelliJ IDEA.
+---
 
-For a Custom Plugin Repository, you will need plugin files, `updatePlugins.xml` file and serve these on a web server.
+```markdown
+# Intellij IDEA Custom Plugin Repository Builder
 
-## Quickstart
+This tool builds a **Custom Plugin Repository** for JetBrains IDEs like IntelliJ IDEA. It supports:
 
-First step is building your repository. Download your plugins (latest versions) for offline use and create `updatePlugins.xml` file.
+- Automatic download of public plugins from JetBrains Plugin Repository
+- Hosting via built-in HTTP server
+- Support for **local/private plugins** with rich metadata (name, vendor, description)
+- Generates `updatePlugins.xml` in [JetBrains plugin repository format](https://plugins.jetbrains.com/docs/intellij/update-plugins-format.html)
+
+---
+
+## 🔧 Quickstart
+
+### 1. Build the repository
+
+This downloads remote plugins (latest versions) and copies local plugin files, then generates `updatePlugins.xml`.
 
 ```sh
 ./repo-builder -build
 ```
 
-Serve repository with the HTTP server.
+### 2. Serve the repository
+
+Launch an HTTP server to serve `updatePlugins.xml` and plugin files.
 
 ```sh
 ./repo-builder -serve
 ```
 
-## Configuration
+---
 
-Configuration options can be specified in `config.yaml`.
+## ⚙️ Configuration (`config.yaml`)
 
-```go
-type Config struct {
-	ServerUrl string   `yaml:"serverUrl"`
-	BindIp    string   `yaml:"bindIp"`
-	Port      string   `yaml:"port"`
-	Dir       string   `yaml:"dir"`
-	Plugins   []string `yaml:"plugins"`
-}
+Your configuration should look like this:
+
+```yaml
+serverUrl: http://localhost:3000
+bindIp: 0.0.0.0
+port: "3000"
+dir: out
+
+# Remote JetBrains plugins (by numeric plugin ID)
+plugins:
+  - "164"       # IdeaVim
+  - "10080"     # .env files support
+
+# Local plugin entries
+localPlugins:
+  - id: com.local
+    version: 2.2.0
+    since: "211.1.*"
+    until: "999.*"
+    file: ./plugins.zip
+    name: plugin name
+    vendor: abc
+    vendorEmail: abc@abc.com
+    vendorUrl: https://www.google.com
+    description: describe
 ```
 
-- `serverUrl`: URL of the server that will serve the repository. (Default: `http://localhost:3000`)
-- `bindIp`: IP address to bind HTTP Server to (Default: `0.0.0.0`)
-- `port`: Port number of the HTTP Server (Default: `3000`)
-- `dir`: Directory to build repository on and server from HTTP server from (Default: `out`)
-- `plugins`: List of plugin IDs you want to add to repository. (*Required*)
+### 🔍 Field Descriptions
 
+| Field         | Type     | Description |
+|---------------|----------|-------------|
+| `serverUrl`   | string   | Base URL to be used in `updatePlugins.xml` (e.g., `http://localhost:3000`) |
+| `bindIp`      | string   | IP to bind the HTTP server (default: `0.0.0.0`) |
+| `port`        | string   | Port for HTTP server (default: `3000`) |
+| `dir`         | string   | Output directory for files and XML |
+| `plugins`     | list     | List of public JetBrains plugin numeric IDs |
+| `localPlugins`| list     | List of local plugins with metadata and file path |
 
-Note that, `plugins` list should only contain IDs of the plugins which can be obtained from its URL.
+---
 
-For example, the following is the URL of the IdeaVim plugin, its plugin ID is *164*.
+## 🧩 IntelliJ IDE Setup
+
+1. Open **Settings → Plugins**
+2. Click the ⚙️ icon → **Manage Plugin Repositories**
+3. Add your custom repo URL:
 
 ```
-https://plugins.jetbrains.com/plugin/164-ideavim
+http://localhost:3000/updatePlugins.xml
 ```
 
-You can find a sample list inside `config.yaml`.
+You’ll now see your custom/private plugins in the **Marketplace** tab.
 
+---
 
-## IntelliJ IDE Setup
+## 🛠 Advanced Features
 
-On your IntelliJ IDE, you need to set your Custom Plugin Repository URL according to [Jetbrains documentation](https://www.jetbrains.com/help/idea/managing-plugins.html#repos).
+- ✅ Full support for `<name>`, `<vendor>`, and `<description>` fields (including HTML)
+- ✅ `<![CDATA[ ... ]]>` block for plugin descriptions
+- ✅ Support for JetBrains build constraints via `<idea-version since-build="..." until-build="..."/>`
+- ✅ Offline usage
 
-Afterwards, you will see the plugins in your repository on Marketplace tab.
+---
 
+## 📌 Notes
 
-## TODO
+- Remote plugin IDs can be found in plugin URLs, e.g.:  
+  `https://plugins.jetbrains.com/plugin/164-ideavim` → ID is `164`
+- Remote plugins fetch **latest release** automatically
+- Local plugins must specify a valid `.zip` or `.jar` plugin file
 
-- Serving `updatePlugins.xml` according to version of Intellj Idea.
-- Test and make it work on other repositories.
+---
 
-### References
-- https://plugins.jetbrains.com/docs/intellij/update-plugins-format.html#format-of-updatepluginsxml-file
+## 🚧 TODO
+
+- [ ] Add support for multiple JetBrains IDE versions in output
+- [ ] Auto-sync from private plugin git repo or artifact repo (e.g., Nexus/Artifactory)
+- [ ] Web UI for local plugin upload
+
+---
+
+## 📚 References
+
+- [JetBrains Plugin Repository Format](https://plugins.jetbrains.com/docs/intellij/update-plugins-format.html)
+- [Custom Plugin Repositories in IntelliJ](https://www.jetbrains.com/help/idea/managing-plugins.html#repos)
+```
+
+---

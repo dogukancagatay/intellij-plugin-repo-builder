@@ -87,7 +87,7 @@ func readConfig(filepath string) Config {
 	data := Config{
 		ServerUrl: "http://localhost:3000",
 		BindIp:    "0.0.0.0",
-		Port:      "30300",
+		Port:      "3000",
 		Dir:       "out",
 	}
 	err2 := yaml.Unmarshal(yfile, &data)

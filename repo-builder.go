@@ -263,7 +263,11 @@ func startHttpServer(host string, port string, dir string) {
 	fs := http.FileServer(http.Dir(dir))
 	http.Handle("/", fs)
 	log.Println("Started listening on " + host + ":" + port + " ...")
-	http.ListenAndServe(host+":"+port, nil)
+	err := http.ListenAndServe(host+":"+port, nil)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 }
 
 func main() {

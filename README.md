@@ -113,6 +113,4 @@ You’ll now see your custom/private plugins in the **Marketplace** tab.
 
 - [JetBrains Plugin Repository Format](https://plugins.jetbrains.com/docs/intellij/update-plugins-format.html)
 - [Custom Plugin Repositories in IntelliJ](https://www.jetbrains.com/help/idea/managing-plugins.html#repos)
-```
 
----

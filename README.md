@@ -1,8 +1,3 @@
-当然，这里是完善后的 `README.md`，增加了完整的 YAML 配置说明、本地插件支持示例、字段文档，以及使用建议等内容，更清晰全面地描述了整个私仓插件构建和使用过程：
-
----
-
-```markdown
 # Intellij IDEA Custom Plugin Repository Builder
 
 This tool builds a **Custom Plugin Repository** for JetBrains IDEs like IntelliJ IDEA. It supports:
@@ -11,8 +6,6 @@ This tool builds a **Custom Plugin Repository** for JetBrains IDEs like IntelliJ
 - Hosting via built-in HTTP server
 - Support for **local/private plugins** with rich metadata (name, vendor, description)
 - Generates `updatePlugins.xml` in [JetBrains plugin repository format](https://plugins.jetbrains.com/docs/intellij/update-plugins-format.html)
-
----
 
 ## 🔧 Quickstart
 

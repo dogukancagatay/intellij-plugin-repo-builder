@@ -159,13 +159,17 @@ func downloadFile(filePath string, url string) error {
 	return nil
 }
 
-func processPlugin(pluginId string, pluginMap map[string]PluginDTO, outputDir string) {
+func processPlugin(pluginId string, pluginMap map[string]PluginDTO, outputDir string) error {
 	plugin := getPlugin(pluginId)
 	releases := getPluginReleases(pluginId)
 	sort.Slice(releases, func(i, j int) bool { return releases[i].Version > releases[j].Version })
 	r := releases[0]
 	url := IntellijDownloadUrlPrefix + "/" + r.File
-	downloadFile(filepath.Join(outputDir, PluginDownloadDir, r.File), url)
+	err := downloadFile(filepath.Join(outputDir, PluginDownloadDir, r.File), url)
+	if err != nil {
+		log.Fatalf("Failed to download plugin %s: %v", pluginId, err)
+		return err
+	}
 	pluginMap[plugin.XMLID] = PluginDTO{
 		ID:          plugin.ID,
 		Name:        plugin.Name,
@@ -179,6 +183,7 @@ func processPlugin(pluginId string, pluginMap map[string]PluginDTO, outputDir st
 			Until:   r.Until,
 		},
 	}
+	return nil
 }
 
 func copyLocalPlugin(p LocalPlugin, destDir string) error {
@@ -211,10 +216,14 @@ func writeLineListFile(filepath string, lineList []string) {
 	_ = file.Close()
 }
 
-func buildRepository(serverUrl string, pluginList []string, localPlugins []LocalPlugin, outputDir string) {
+func buildRepository(serverUrl string, pluginList []string, localPlugins []LocalPlugin, outputDir string) error {
 	pluginMap := map[string]PluginDTO{}
 	for _, pluginId := range pluginList {
-		processPlugin(pluginId, pluginMap, outputDir)
+		err := processPlugin(pluginId, pluginMap, outputDir)
+		if err != nil {
+			log.Fatalf("Failed to process plugin %s: %v", pluginId, err)
+			return err
+		}
 	}
 	for _, p := range localPlugins {
 		err := copyLocalPlugin(p, outputDir)
@@ -257,6 +266,7 @@ func buildRepository(serverUrl string, pluginList []string, localPlugins []Local
 	fileContent = append(fileContent, "</plugins>\n")
 	writeLineListFile(filepath.Join(outputDir, "updatePlugins.xml"), fileContent)
 	log.Printf("📄 XML 路径: %s", filepath.Join(outputDir, "updatePlugins.xml"))
+	return nil
 }
 
 func startHttpServer(host string, port string, dir string) {
@@ -282,7 +292,11 @@ func main() {
 		if len(config.Plugins) == 0 && len(config.LocalPlugins) == 0 {
 			log.Fatalln("No plugins configured to build repository.")
 		}
-		buildRepository(config.ServerUrl, config.Plugins, config.LocalPlugins, config.Dir)
+		err := buildRepository(config.ServerUrl, config.Plugins, config.LocalPlugins, config.Dir)
+		if err != nil {
+			log.Fatalf("Failed to build repository: %v\n", err)
+			return
+		}
 	} else {
 		fmt.Println("You need to specify one of `-build` or `-serve` arguments.")
 	}

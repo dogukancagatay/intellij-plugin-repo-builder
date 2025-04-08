@@ -23,88 +23,41 @@ const PluginApiUrlPrefix = "https://plugins.jetbrains.com/api/plugins"
 const PluginReleaseUrlPrefix = "https://plugins.jetbrains.com/api/plugins"
 const PluginReleaseUrlSuffix = "updates?channel=&size=8"
 
+type LocalPlugin struct {
+	ID          string `yaml:"id"`
+	Version     string `yaml:"version"`
+	Since       string `yaml:"since"`
+	Until       string `yaml:"until"`
+	File        string `yaml:"file"`
+	Name        string `yaml:"name"`
+	Vendor      string `yaml:"vendor"`
+	VendorEmail string `yaml:"vendorEmail"`
+	VendorUrl   string `yaml:"vendorUrl"`
+	Description string `yaml:"description"`
+}
+
+type Config struct {
+	ServerUrl    string        `yaml:"serverUrl"`
+	BindIp       string        `yaml:"bindIp"`
+	Port         string        `yaml:"port"`
+	Dir          string        `yaml:"dir"`
+	Plugins      []string      `yaml:"plugins"`
+	LocalPlugins []LocalPlugin `yaml:"localPlugins"`
+}
+
 type Plugin struct {
-	ID            int    `json:"id"`
-	Name          string `json:"name"`
-	Link          string `json:"link"`
-	Approve       bool   `json:"approve"`
-	XMLID         string `json:"xmlId"`
-	Description   string `json:"description"`
-	CustomIdeList bool   `json:"customIdeList"`
-	Preview       string `json:"preview"`
-	DocText       string `json:"docText"`
-	Cdate         int64  `json:"cdate"`
-	Family        string `json:"family"`
-	Downloads     int    `json:"downloads"`
-	Vendor        struct {
-		Name       string `json:"name"`
-		URL        string `json:"url"`
-		IsVerified bool   `json:"isVerified"`
-	} `json:"vendor"`
-	Urls struct {
-		URL           string `json:"url"`
-		ForumURL      string `json:"forumUrl"`
-		LicenseURL    string `json:"licenseUrl"`
-		BugtrackerURL string `json:"bugtrackerUrl"`
-		DocURL        string `json:"docUrl"`
-		SourceCodeURL string `json:"sourceCodeUrl"`
-	} `json:"urls"`
-	Tags []struct {
-		ID         int    `json:"id"`
-		Name       string `json:"name"`
-		Privileged bool   `json:"privileged"`
-		Searchable bool   `json:"searchable"`
-		Link       string `json:"link"`
-	} `json:"tags"`
-	HasUnapprovedUpdate bool   `json:"hasUnapprovedUpdate"`
-	ReadyForSale        bool   `json:"readyForSale"`
-	Icon                string `json:"icon"`
+	ID          int    `json:"id"`
+	Name        string `json:"name"`
+	XMLID       string `json:"xmlId"`
+	Description string `json:"description"`
 }
 
 type PluginRelease struct {
-	ID                              int    `json:"id"`
-	Link                            string `json:"link"`
-	Version                         string `json:"version"`
-	Approve                         bool   `json:"approve"`
-	Listed                          bool   `json:"listed"`
-	RecalculateCompatibilityAllowed bool   `json:"recalculateCompatibilityAllowed"`
-	Cdate                           string `json:"cdate"`
-	File                            string `json:"file"`
-	Notes                           string `json:"notes"`
-	Since                           string `json:"since"`
-	Until                           string `json:"until"`
-	SinceUntil                      string `json:"sinceUntil"`
-	Channel                         string `json:"channel"`
-	Size                            int    `json:"size"`
-	Downloads                       int    `json:"downloads"`
-	PluginID                        int    `json:"pluginId"`
-	CompatibleVersions              struct {
-		IdeaEducational    string `json:"IDEA_EDUCATIONAL"`
-		Appcode            string `json:"APPCODE"`
-		Phpstorm           string `json:"PHPSTORM"`
-		Rider              string `json:"RIDER"`
-		Clion              string `json:"CLION"`
-		PycharmCommunity   string `json:"PYCHARM_COMMUNITY"`
-		AndroidStudio      string `json:"ANDROID_STUDIO"`
-		IdeaCommunity      string `json:"IDEA_COMMUNITY"`
-		Rubymine           string `json:"RUBYMINE"`
-		Dataspell          string `json:"DATASPELL"`
-		PycharmEducational string `json:"PYCHARM_EDUCATIONAL"`
-		Webstorm           string `json:"WEBSTORM"`
-		Mps                string `json:"MPS"`
-		Idea               string `json:"IDEA"`
-		Dbe                string `json:"DBE"`
-		Pycharm            string `json:"PYCHARM"`
-		Goland             string `json:"GOLAND"`
-	} `json:"compatibleVersions"`
-	Author struct {
-		ID       string `json:"id"`
-		Name     string `json:"name"`
-		Link     string `json:"link"`
-		HubLogin string `json:"hubLogin"`
-		Icon     string `json:"icon"`
-	} `json:"author"`
-	Modules []interface{} `json:"modules"`
+	ID      int    `json:"id"`
+	Version string `json:"version"`
+	Since   string `json:"since"`
+	Until   string `json:"until"`
+	File    string `json:"file"`
 }
 
 type ReleaseDTO struct {
@@ -116,285 +69,235 @@ type ReleaseDTO struct {
 }
 
 type PluginDTO struct {
-	ID      int        `json:"id"`
-	Name    string     `json:"name"`
-	XMLID   string     `json:"xmlId"`
-	Release ReleaseDTO `json:"releases"`
-}
-
-type Config struct {
-	ServerUrl string   `yaml:"serverUrl"`
-	BindIp    string   `yaml:"bindIp"`
-	Port      string   `yaml:"port"`
-	Dir       string   `yaml:"dir"`
-	Plugins   []string `yaml:"plugins"`
+	ID          int        `json:"id"`
+	Name        string     `json:"name"`
+	XMLID       string     `json:"xmlId"`
+	Description string     `json:"description"`
+	Vendor      string     `json:"vendor"`
+	VendorEmail string     `json:"vendorEmail"`
+	VendorUrl   string     `json:"vendorUrl"`
+	Release     ReleaseDTO `json:"releases"`
 }
 
 func readConfig(filepath string) Config {
-	log.Printf("Read config from %s\n", filepath)
 	yfile, err := ioutil.ReadFile(filepath)
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	data := Config{
 		ServerUrl: "http://localhost:3000",
 		BindIp:    "0.0.0.0",
 		Port:      "3000",
 		Dir:       "out",
 	}
-
 	err2 := yaml.Unmarshal(yfile, &data)
 	if err2 != nil {
 		log.Fatal(err2)
 	}
-
 	return data
 }
 
 func httpGetRequest(url string) []byte {
-	httpClient := http.Client{
-		Timeout: time.Second * 2, // Timeout after 2 seconds
-	}
-
+	httpClient := http.Client{Timeout: time.Second * 2}
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	res, getErr := httpClient.Do(req)
 	if getErr != nil {
 		log.Fatal(getErr)
 	}
-
-	if res.Body != nil {
-		defer res.Body.Close()
-	}
-
+	defer res.Body.Close()
 	body, readErr := ioutil.ReadAll(res.Body)
 	if readErr != nil {
 		log.Fatal(readErr)
 	}
-
-	return body[:]
+	return body
 }
 
 func getPlugin(pluginId string) Plugin {
 	url := PluginApiUrlPrefix + "/" + pluginId
-
 	jsonByteArr := httpGetRequest(url)
 	plugin := Plugin{}
-	jsonErr := json.Unmarshal(jsonByteArr, &plugin)
-	if jsonErr != nil {
-		log.Fatal(jsonErr)
+	err := json.Unmarshal(jsonByteArr, &plugin)
+	if err != nil {
+		log.Fatal(err)
 	}
-
 	return plugin
 }
 
 func getPluginReleases(pluginId string) []PluginRelease {
 	url := PluginReleaseUrlPrefix + "/" + pluginId + "/" + PluginReleaseUrlSuffix
-
 	jsonByteArr := httpGetRequest(url)
-	var pluginReleaseArr []PluginRelease
-	jsonErr := json.Unmarshal(jsonByteArr, &pluginReleaseArr)
-	if jsonErr != nil {
-		log.Fatal(jsonErr)
+	var releases []PluginRelease
+	err := json.Unmarshal(jsonByteArr, &releases)
+	if err != nil {
+		log.Fatal(err)
 	}
-
-	return pluginReleaseArr
+	return releases
 }
 
 func downloadFile(filePath string, url string) error {
-
-	// Get the data
 	resp, err := http.Get(url)
 	if err != nil {
-		log.Fatalf("Error accessing plugin API: %s", err)
 		return err
 	}
 	defer resp.Body.Close()
-
-	// download if if file doesn't exist
-	if _, err = os.Stat(filePath); os.IsNotExist(err) {
-
-		// fp := filepath.Join(filePath)
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		dirPath := filepath.Dir(filePath)
-
 		if _, err := os.Stat(dirPath); os.IsNotExist(err) {
-			err := os.MkdirAll(dirPath, 0755)
-			if err != nil {
-				log.Fatalf("Error creating download directories: %s", err)
-				return err
-			}
+			_ = os.MkdirAll(dirPath, 0755)
 		}
-
-		// Create the file
 		out, err := os.Create(filePath)
 		if err != nil {
-			log.Fatalf("Error creating file: %s", err)
 			return err
 		}
 		defer out.Close()
-
-		// Write the body to file
 		_, err = io.Copy(out, resp.Body)
-		if err != nil {
-			log.Fatalf("Could not write body to file %s", filePath)
-			return err
-		}
-		log.Printf("Downloaded %s to %s", url, filePath)
-	} else {
-		log.Printf("File is already exists: %s", filePath)
+		return err
 	}
-
 	return nil
 }
 
-func processPlugin(pluginId string, sinceMap map[string]PluginDTO, outputDir string) {
-
-	downloadDirPath := outputDir + "/" + PluginDownloadDir
-
+func processPlugin(pluginId string, pluginMap map[string]PluginDTO, outputDir string) error {
 	plugin := getPlugin(pluginId)
-	pluginReleases := getPluginReleases(pluginId)
-
-	sort.Slice(pluginReleases, func(i, j int) bool {
-		return pluginReleases[i].Version > pluginReleases[j].Version
-	})
-
-	r := pluginReleases[0]
-	downloadUrl := IntellijDownloadUrlPrefix + "/" + r.File
-
-	log.Printf("Will download '%s' (%s) (%s) from %s\n", plugin.Name, plugin.XMLID, r.Version, downloadUrl)
-
-	// Create Release DTO
-	release := ReleaseDTO{}
-	release.ID = r.ID
-	release.File = r.File
-	release.Since = r.Since
-	release.Until = r.Until
-	release.Version = r.Version
-
-	// Create pluginDTO
-	pluginDto := PluginDTO{}
-	pluginDto.ID = plugin.ID
-	pluginDto.Name = plugin.Name
-	pluginDto.XMLID = plugin.XMLID
-	pluginDto.Release = release
-
-	sinceMap[plugin.XMLID] = pluginDto
-	err := downloadFile(downloadDirPath+"/"+r.File, downloadUrl)
+	releases := getPluginReleases(pluginId)
+	sort.Slice(releases, func(i, j int) bool { return releases[i].Version > releases[j].Version })
+	r := releases[0]
+	url := IntellijDownloadUrlPrefix + "/" + r.File
+	err := downloadFile(filepath.Join(outputDir, PluginDownloadDir, r.File), url)
 	if err != nil {
-		log.Fatalf("Failed creating file: %s", err)
-		return
+		log.Fatalf("Failed to download plugin %s: %v", pluginId, err)
+		return err
 	}
+	pluginMap[plugin.XMLID] = PluginDTO{
+		ID:          plugin.ID,
+		Name:        plugin.Name,
+		XMLID:       plugin.XMLID,
+		Description: plugin.Description,
+		Release: ReleaseDTO{
+			ID:      r.ID,
+			File:    r.File,
+			Version: r.Version,
+			Since:   r.Since,
+			Until:   r.Until,
+		},
+	}
+	return nil
+}
 
+func copyLocalPlugin(p LocalPlugin, destDir string) error {
+	destPath := filepath.Join(destDir, PluginDownloadDir, filepath.Base(p.File))
+	input, err := os.Open(p.File)
+	if err != nil {
+		return err
+	}
+	defer input.Close()
+	os.MkdirAll(filepath.Dir(destPath), 0755)
+	output, err := os.Create(destPath)
+	if err != nil {
+		return err
+	}
+	defer output.Close()
+	_, err = io.Copy(output, input)
+	return err
 }
 
 func writeLineListFile(filepath string, lineList []string) {
-
 	file, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
-
 	if err != nil {
-		log.Fatalf("Failed creating file: %s", err)
-		return
+		log.Fatal(err)
 	}
-
 	datawriter := bufio.NewWriter(file)
-
 	for _, data := range lineList {
 		_, _ = datawriter.WriteString(data)
 	}
-
-	err = datawriter.Flush()
-	if err != nil {
-		log.Fatalf("Failed flushing file: %s", err)
-		return
-	}
-
-	err = file.Close()
-	if err != nil {
-		log.Fatalf("Failed closing file: %s", err)
-		return
-	}
+	_ = datawriter.Flush()
+	_ = file.Close()
 }
 
-func buildRepository(serverUrl string, pluginList []string, outputDir string) {
-	// Download Plugins
-
-	log.Println("Obtain plugin data and download plugins")
-	var sinceMap = map[string]PluginDTO{}
-
+func buildRepository(serverUrl string, pluginList []string, localPlugins []LocalPlugin, outputDir string) error {
+	pluginMap := map[string]PluginDTO{}
 	for _, pluginId := range pluginList {
-		processPlugin(pluginId, sinceMap, outputDir)
+		err := processPlugin(pluginId, pluginMap, outputDir)
+		if err != nil {
+			log.Fatalf("Failed to process plugin %s: %v", pluginId, err)
+			return err
+		}
 	}
-
-	// Prepare file content
-	log.Println("Prepare updatePlugins.xml file content")
+	for _, p := range localPlugins {
+		err := copyLocalPlugin(p, outputDir)
+		if err != nil {
+			log.Fatalf("Failed to copy local plugin %s: %v", p.ID, err)
+		}
+		pluginMap[p.ID] = PluginDTO{
+			ID:          0,
+			Name:        p.Name,
+			XMLID:       p.ID,
+			Description: p.Description,
+			Vendor:      p.Vendor,
+			VendorEmail: p.VendorEmail,
+			VendorUrl:   p.VendorUrl,
+			Release: ReleaseDTO{
+				File:    filepath.Base(p.File),
+				Version: p.Version,
+				Since:   p.Since,
+				Until:   p.Until,
+			},
+		}
+	}
 	fileContent := []string{"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<plugins>\n"}
-
-	for _, plugin := range sinceMap {
+	for _, plugin := range pluginMap {
 		fileContent = append(fileContent,
 			fmt.Sprintf("\t<plugin id=\"%s\" url=\"%s/%s/%s\" version=\"%s\">\n",
-				plugin.XMLID,
-				serverUrl,
-				PluginDownloadDir,
-				plugin.Release.File,
-				plugin.Release.Version,
-			),
-		)
-
+				plugin.XMLID, serverUrl, PluginDownloadDir, plugin.Release.File, plugin.Release.Version))
+		fileContent = append(fileContent,
+			fmt.Sprintf("\t\t<name>%s</name>\n", plugin.Name))
+		fileContent = append(fileContent,
+			fmt.Sprintf("\t\t<vendor email=\"%s\" url=\"%s\"> %s </vendor>\n",
+				plugin.VendorEmail, plugin.VendorUrl, plugin.Vendor))
+		fileContent = append(fileContent,
+			fmt.Sprintf("\t\t<description><![CDATA[ %s ]]></description>\n", plugin.Description))
 		fileContent = append(fileContent,
 			fmt.Sprintf("\t\t<idea-version since-build=\"%s\" until-build=\"%s\" />\n",
-				plugin.Release.Since,
-				plugin.Release.Until,
-			),
-		)
+				plugin.Release.Since, plugin.Release.Until))
 		fileContent = append(fileContent, "\t</plugin>\n")
 	}
-
 	fileContent = append(fileContent, "</plugins>\n")
-
-	// Write to updatePlugins.xml file
-	log.Println("Write updatePlugins.xml file")
-	writeLineListFile(outputDir+"/updatePlugins.xml", fileContent)
+	writeLineListFile(filepath.Join(outputDir, "updatePlugins.xml"), fileContent)
+	log.Printf("📄 XML 路径: %s", filepath.Join(outputDir, "updatePlugins.xml"))
+	return nil
 }
 
 func startHttpServer(host string, port string, dir string) {
-
 	fs := http.FileServer(http.Dir(dir))
 	http.Handle("/", fs)
-
 	log.Println("Started listening on " + host + ":" + port + " ...")
 	err := http.ListenAndServe(host+":"+port, nil)
 	if err != nil {
 		log.Fatal(err)
+		return
 	}
-
 }
 
 func main() {
-
-	// Arguments
 	serveHttp := flag.Bool("serve", false, "Start HTTP server")
-	buildRepo := flag.Bool("build", false, "Build repository (Requires internet)")
+	buildRepo := flag.Bool("build", false, "Build repository")
 	configFile := flag.String("config", "config.yaml", "Config file")
 	flag.Parse()
-
-	// Read config
 	config := readConfig(*configFile)
-
-	// Run according to mode
 	if *serveHttp {
 		startHttpServer(config.BindIp, config.Port, config.Dir)
 	} else if *buildRepo {
-		if len(config.Plugins) == 0 {
-			log.Fatalln("Cannot build repository on empty plugin list.")
+		if len(config.Plugins) == 0 && len(config.LocalPlugins) == 0 {
+			log.Fatalln("No plugins configured to build repository.")
 		}
-		buildRepository(config.ServerUrl, config.Plugins, config.Dir)
+		err := buildRepository(config.ServerUrl, config.Plugins, config.LocalPlugins, config.Dir)
+		if err != nil {
+			log.Fatalf("Failed to build repository: %v\n", err)
+			return
+		}
 	} else {
 		fmt.Println("You need to specify one of `-build` or `-serve` arguments.")
-		fmt.Println("Usage: repo-builder <arguments>")
 	}
-
 }
